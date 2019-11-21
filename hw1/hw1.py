@@ -3,7 +3,7 @@
 import numpy as np
 import cv2 as cv
 import time
-
+from PIL import Image, ImageDraw, ImageFont
 run_img = cv.imread('run.jpg', 1)       # the run image about recording
 stop_img = cv.imread('stop.jpg', 1)     # the stop image about recording
 bighead = cv.imread('bighead.png', 1)   # my big head picture
@@ -40,6 +40,17 @@ def draw_line(event, x, y, flags, param):
         line_list.append([ix, iy, iix, iiy])
 
 
+def paint_chinese_opencv(img, chinese, pos, color):
+    img_PIL = Image.fromarray(cv.cvtColor(img, cv.COLOR_RGB2BGR))
+    chinese_font = ImageFont.truetype('simhei.ttf', 15, encoding='utf-8')
+    position = pos
+    fillColor = color
+    draw = ImageDraw.Draw(img_PIL)
+    draw.text(position, chinese, font=chinese_font, fill=fillColor)
+    img = cv.cvtColor(np.asarray(img_PIL), cv.COLOR_RGB2BGR)
+    return img
+
+
 run_img = img_resize(run_img, 30, 30)
 stop_img = img_resize(stop_img, 30, 30)
 bighead = img_resize(bighead, 60, 60)
@@ -54,12 +65,11 @@ while 1:
         frame[440:470, 10:40] = stop_img
     frame[10:70, 580:640] = bighead
     localtime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    cv.putText(frame, localtime + ' Xjk 21960439', (50, 470), font, 0.5, (255, 255, 255), 1, cv.LINE_AA)
-    if firstFlag or line_list:          # draw current line
-        cv.line(frame, (ix, iy), (iix, iiy), (0, 0, 255), 1)
-        firstFlag = False
+    cv.putText(frame, localtime, (50, 470), font, 0.5, (255, 255, 255), 1, cv.LINE_AA)
+    frame = paint_chinese_opencv(frame, "徐骏凯 21960439", (250, 460), (255, 255, 255))
     for line in line_list:              # draw all the lines have been drawn
         cv.line(frame, (line[0], line[1]), (line[2], line[3]), (0, 0, 255), 1)
+    cv.line(frame, (ix, iy), (iix, iiy), (0, 0, 255), 1)  # draw current line
     if recordFlag:
         out.write(frame)                # if recordFlag is True, record the frame in the current out file
     cv.imshow('frame', frame)
@@ -76,7 +86,8 @@ while 1:
             out = cv.VideoWriter('output%d.avi' % cnt_video, fourcc, 20.0, (640, 480))
     elif k == ord('c'):                 # enter 'c' to clear all the lines
         line_list.clear()
-        firstFlag = True
+        ix, iy = -1, -1
+        iix, iiy = -1, -1
 
 cap.release()
 cv.destroyAllWindows()
