@@ -1,2 +1,2 @@
 this is homework3 about LeNet5 and SqzNet.
-in this work i use these netural network to do the classify job
+in this work i use these netural network to do the classify job use the dataset MNIST and CIFAR10
